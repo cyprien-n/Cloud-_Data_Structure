@@ -1,129 +1,127 @@
-# import streamlit as st
-# from pymongo import MongoClient
-# import time
-
-# # Connexion à la base de données MongoDB
-# client = MongoClient('mongodb://localhost:27017/')  # Mettez votre URI MongoDB ici
-# db = client['Walmart_cloud']  # Remplacez 'nom_de_votre_database' par le nom de votre base de données
-
-# # Fonction pour la page utilisateur interne
-# def page_utilisateur_interne():
-#     st.title("Utilisateur Interne")
-
-#     # Onglets de navigation pour l'utilisateur interne
-#     onglet_selectionne = st.sidebar.selectbox("Navigation", ("Mesure de Performance", "Autre Option", "Requête"))
-
-#     if onglet_selectionne == "Mesure de Performance":
-#         st.subheader("Mesure de Performance")
-
-#         st.write("Exemple de pipeline à exécuter :")
-#         st.code("""
-#         pipeline = [
-#             {
-#                 '$match': {
-#                     'store_nbr': 1, 
-#                     'item_nbr': 9
-#                 }
-#             },
-#             {
-#                 '$group': {
-#                     '_id': None, 
-#                     'total_units': {
-#                         '$sum': '$units'
-#                     }
-#                 }
-#             },
-#             {
-#                 '$project': {
-#                     '_id': 0, 
-#                     'total_units': 1
-#                 }
-#             }
-#         ]
-#         """)
-
-#         num_iterations = st.number_input("Nombre d'itérations pour la mesure de performance", value=1)
-
-#         if st.button("Lancer la mesure de performance"):
-#             collection = db['sales']  # Remplacez 'votre_collection' par le nom de votre collection
-#             pipeline = [  # Insérez ici le pipeline donné
-#                 # Votre pipeline donné ici...
-#             ]
-
-#             execution_times = []
-
-#             for i in range(num_iterations):
-#                 start_time = time.time()
-#                 result = list(collection.aggregate(pipeline))
-#                 end_time = time.time()
-#                 execution_time = end_time - start_time
-#                 execution_times.append(execution_time)
-
-#                 # Afficher le résultat de la première itération (à des fins de vérification)
-#                 if i == 0:
-#                     st.write("Résultat de la requête (première itération) :", result)
-
-#             st.write(f"Temps d'exécution moyen sur {num_iterations} itérations :", sum(execution_times) / len(execution_times), "secondes")
-
-#         # Ajoutez ici d'autres composants pour d'autres fonctionnalités pour l'utilisateur interne
-
-#     elif onglet_selectionne == "Autre Option":
-#         st.subheader("Autre Option")
-#         # Ajoutez ici d'autres composants pour d'autres fonctionnalités pour l'utilisateur interne
-
-#     elif onglet_selectionne == "Requête":
-#         st.subheader("Requête")
-#         # Ajoutez ici les composants pour les requêtes spécifiques à l'utilisateur interne vers MongoDB
-#         # Par exemple, des champs de saisie pour les requêtes, des boutons pour lancer les requêtes, etc.
-
-# # Fonction pour la page utilisateur externe
-# def page_utilisateur_externe():
-#     st.title("Utilisateur Externe")
-#     # Ajoutez ici les composants de l'interface pour les utilisateurs externes
-#     # ... (vous pouvez ajouter un onglet de requête pour les utilisateurs externes si nécessaire)
-
-# # Interface utilisateur Streamlit
-# st.title("Walmart Weather 🌧")
-
-# user_level = st.selectbox("Sélectionnez votre niveau d'utilisateur", ("Interne", "Externe"))
-
-# if user_level == "Interne":
-#     page_utilisateur_interne()
-# elif user_level == "Externe":
-#     page_utilisateur_externe()
-
-
-
-
-
-
-
-
-##############################################################################
-
-
-
-
-import matplotlib.pyplot as plt
 import streamlit as st
 from pymongo import MongoClient
 import time
+import matplotlib.pyplot as plt
 
-# Increase message size limit
-# st.set_option('server.maxMessageSize', 500)  # Set the value according to your needs
-
-# Connection to the MongoDB database
+# Connexion à la base de données MongoDB
 client = MongoClient('mongodb://localhost:27017/')
 db = client['WalmartWeather']
 
-# Function for the internal user page
+# Fonction pour les requêtes spécifiques pour l'utilisateur interne
+def internal_queries():
+    st.subheader("Requêtes Internes")
+    query_choice = st.selectbox("Choisissez une requête interne", ("Requête 1 (Interne)", "Requête 2 (Interne)", "Requête 1 (Externe)", "Requête 2 (Externe)", "Requête 3 (Externe)", "Requête 4 (Externe)"))
+
+    if query_choice == "Requête 1 (Interne)":
+        # Ajoutez ici la logique pour la requête 1 pour l'utilisateur interne
+        st.write("Vous avez choisi la Requête 1 (Interne)")
+    elif query_choice == "Requête 2 (Interne)":
+        # Ajoutez ici la logique pour la requête 2 pour l'utilisateur interne
+        st.write("Vous avez choisi la Requête 2 (Interne)")
+    elif query_choice == "Requête 1 (Externe)":
+        # Ajoutez ici la logique pour la requête 1 pour l'utilisateur externe
+        st.write("Vous avez choisi la Requête 1 (Externe)")
+        if st.button("Afficher la Requête 1 (Externe)"):
+            mongo_host = 'localhost'
+            mongo_port = 27017
+            mongo_database = 'WalmartWeather'
+            collection_name = 'sales'
+            client = MongoClient(f'mongodb://{mongo_host}:{mongo_port}/')
+            db = client[mongo_database]
+            collection = db[collection_name]           
+            pipeline = [
+            {
+                '$match': {
+                    'store_nbr': 1, 
+                    'item_nbr': 9
+                }
+            },
+            {
+                '$group': {
+                    '_id': None, 
+                    'total_units': {
+                        '$sum': '$units'
+                    }
+                }
+            },
+            {
+                '$project': {
+                    '_id': 0, 
+                    'total_units': 1
+                }
+            }
+            ]
+            result = list(collection.aggregate(pipeline))
+            st.write(result)
+    elif query_choice == "Requête 2 (Externe)":
+        # Ajoutez ici la logique pour la requête 2 pour l'utilisateur externe
+        st.write("Vous avez choisi la Requête 2 (Externe)")
+    elif query_choice == "Requête 3 (Externe)":
+        # Ajoutez ici la logique pour la requête 3 pour l'utilisateur externe
+        st.write("Vous avez choisi la Requête 3 (Externe)")
+    elif query_choice == "Requête 4 (Externe)":
+        # Ajoutez ici la logique pour la requête 4 pour l'utilisateur externe
+        st.write("Vous avez choisi la Requête 4 (Externe)")
+
+# Fonction pour les requêtes spécifiques pour l'utilisateur externe
+def external_queries():
+    st.subheader("Requêtes Externes")
+    query_choice = st.selectbox("Choisissez une requête externe", ("Requête 1 (Externe)", "Requête 2 (Externe)", "Requête 3 (Externe)", "Requête 4 (Externe)"))
+
+    if query_choice == "Requête 1 (Externe)":
+        # Ajoutez ici la logique pour la Requête 1 pour l'utilisateur externe
+        st.write("Vous avez choisi la Requête 1 (Externe)")
+        if st.button("Afficher la Requête 1 (Externe)"):
+            mongo_host = 'localhost'
+            mongo_port = 27017
+            mongo_database = 'WalmartWeather'
+            collection_name = 'sales'
+            client = MongoClient(f'mongodb://{mongo_host}:{mongo_port}/')
+            db = client[mongo_database]
+            collection = db[collection_name]           
+            pipeline = [
+            {
+                '$match': {
+                    'store_nbr': 1, 
+                    'item_nbr': 9
+                }
+            },
+            {
+                '$group': {
+                    '_id': None, 
+                    'total_units': {
+                        '$sum': '$units'
+                    }
+                }
+            },
+            {
+                '$project': {
+                    '_id': 0, 
+                    'total_units': 1
+                }
+            }
+            ]
+            result = list(collection.aggregate(pipeline))
+            st.write(result)
+    elif query_choice == "Requête 2 (Externe)":
+        # Ajoutez ici la logique pour la Requête 2 pour l'utilisateur externe
+        st.write("Vous avez choisi la Requête 2 (Externe)")
+    elif query_choice == "Requête 3 (Externe)":
+        # Ajoutez ici la logique pour la Requête 3 pour l'utilisateur externe
+        st.write("Vous avez choisi la Requête 3 (Externe)")
+    elif query_choice == "Requête 4 (Externe)":
+        # Ajoutez ici la logique pour la Requête 4 pour l'utilisateur externe
+        st.write("Vous avez choisi la Requête 4 (Externe)")
+
+# Fonction pour la page utilisateur interne
 def page_internal_user():
     st.title("Utilisateur Interne")
 
-    # Onglets de navigation pour l'utilisateur interne
-    onglet_selectionne = st.sidebar.selectbox("Navigation", ("Mesure de Performance", "Autre Option", "Requête"))
+    onglet_selectionne = st.sidebar.selectbox("Navigation", ("Requête", "Mesure de Performance", "Autre option"))
 
     if onglet_selectionne == "Mesure de Performance":
+        st.subheader("Mesure de Performance")
+        # Ajoutez ici la logique pour la mesure de performance pour l'utilisateur interne
         st.subheader("Mesure de Performance")
 
         st.write("Exemple de pipeline à exécuter :")
@@ -195,30 +193,32 @@ def page_internal_user():
             plt.ylabel('Temps d\'exécution moyen (s)')
             plt.title('Temps d\'exécution moyen en fonction du nombre de Shards')
             st.pyplot(plt)
-
-        # Ajoutez ici d'autres composants pour d'autres fonctionnalités pour l'utilisateur interne
-
     elif onglet_selectionne == "Autre Option":
         st.subheader("Autre Option")
         # Ajoutez ici d'autres composants pour d'autres fonctionnalités pour l'utilisateur interne
 
     elif onglet_selectionne == "Requête":
-        st.subheader("Requête")
-        # Ajoutez ici les composants pour les requêtes spécifiques à l'utilisateur interne
-        # Par exemple, des champs de saisie pour les requêtes, des boutons pour lancer les requêtes, etc.
+        internal_queries()
 
-# Function for the external user page
+# Fonction pour la page utilisateur externe
 def page_external_user():
-    st.title("External User")
-    # Add components for the interface for external users
-    # ... (you can add a query tab for external users if needed)
+    st.title("Utilisateur Externe")
 
-# Streamlit user interface
+    onglet_selectionne = st.sidebar.selectbox("Navigation", ("Requête", "Autre option"))
+
+    if onglet_selectionne == "Autre Option":
+        st.subheader("Autre Option")
+        # Ajoutez ici d'autres composants pour d'autres fonctionnalités pour l'utilisateur externe
+
+    elif onglet_selectionne == "Requête":
+        external_queries()
+
+# Interface utilisateur Streamlit
 st.title("Walmart Weather 🌧")  
 
-user_level = st.selectbox("Select your user level", ("Internal", "External"))
+user_level = st.selectbox("Sélectionnez votre niveau d'utilisateur", ("Interne", "Externe"))
 
-if user_level == "Internal":
+if user_level == "Interne":
     page_internal_user()
-elif user_level == "External":
+elif user_level == "Externe":
     page_external_user()
