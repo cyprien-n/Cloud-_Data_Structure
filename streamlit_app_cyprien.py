@@ -97,6 +97,8 @@ import streamlit as st
 from pymongo import MongoClient
 import time
 import matplotlib.pyplot as plt
+import plotly.express as px
+
 
 # Connexion à la base de données MongoDB
 mongo_host = 'localhost'
@@ -227,7 +229,7 @@ def page_internal_user():
             collection_name = 'sales'
 
             avg_execution_times = []
-
+################################### CHANGER RANGE(1,7) ###################################################
             shards_list = list(range(1, 7))
             plt.figure(figsize=(10, 6))
 
@@ -273,20 +275,28 @@ def page_internal_user():
                 st.write(f"Average execution time with {num_shards} shards :", average_execution_time, "seconds")
 
                 # client.close()
+            # Create a Plotly Express scatter plot
+            fig = px.scatter(x=shards_list, y=avg_execution_times, labels={'x': 'Shards', 'y': 'Average Execution Time'},
+                            title='My Plot', template='plotly_dark')
 
-            fig, ax = plt.subplots()
-            fig.patch.set_facecolor(st.get_option("theme.primaryColor"))
+            # Set background color of the plot area
+            fig.update_layout(plot_bgcolor='rgba(0,0,0,0)')  # Full transparency
 
-            # Plot the data
-            ax.plot(shards_list, avg_execution_times, marker='o', linestyle='-', color='blue')
-            ax.set_facecolor('rgba(0,0,0,0)')
-            ax.yaxis.grid(False)
-            ax.xaxis
-            # Set plot labels and title
-            ax.set_xlabel('Shards')
-            ax.set_ylabel('Average Execution Time')
-            ax.set_title('Average execution time depending of the number of Shards')
-            st.pyplot(fig)
+            # Display the plot in Streamlit
+            st.plotly_chart(fig)
+            # fig, ax = plt.subplots()
+            # fig.patch.set_facecolor(st.get_option("theme.primaryColor"))
+
+            # # Plot the data
+            # ax.plot(shards_list, avg_execution_times, marker='o', linestyle='-', color='lightblue')
+            # ax.set_facecolor(("#FFFFFF"))  # Full transparency
+            # ax.yaxis.grid(False)
+            # # ax.xaxis
+            # # Set plot labels and title
+            # ax.set_xlabel('Shards')
+            # ax.set_ylabel('Average Execution Time')
+            # ax.set_title('Average execution time depending of the number of Shards')
+            # st.pyplot(fig)
 
             # Plot des temps d'exécution moyens en fonction du nombre de shards
             # plt.plot(shards_list, avg_execution_times, marker='o', linestyle='-', color='blue')
@@ -315,7 +325,7 @@ def page_external_user():
 
 # Interface utilisateur Streamlit
 st.title("Walmart Weather 🌧")  
-
+# st.set_page_config(page_title="Walmart Weather 🌧", layout="wide", bg_color="lightblue")
 user_level = st.selectbox("Select your user level ", ("Data Analyst", "End-User", "Administrator"))
 
 if user_level == "Data Analyst":
