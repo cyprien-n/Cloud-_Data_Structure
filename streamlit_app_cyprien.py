@@ -239,26 +239,69 @@ def page_internal_user():
                 execution_times = []
 
                 pipeline = [
-            {
-                '$match': {
-                    'store_nbr': 1, 
-                    'item_nbr': 9
-                }
-            },
-            {
-                '$group': {
-                    '_id': None, 
-                    'total_units': {
-                        '$sum': '$units'
+            # {
+            #     '$match': {
+            #         'store_nbr': 1, 
+            #         'item_nbr': 9
+            #     }
+            # },
+            # {
+            #     '$group': {
+            #         '_id': None, 
+            #         'total_units': {
+            #             '$sum': '$units'
+            #         }
+            #     }
+            # },
+            # {
+            #     '$project': {
+            #         '_id': 0, 
+            #         'total_units': 1
+            #     }
+            # }
+            #     ]
+            
+                    {
+                        '$lookup': {
+                            'from': 'stores', 
+                            'localField': 'station_nbr', 
+                            'foreignField': 'store_nbr', 
+                            'as': 'store_info'
+                        }
+                    }, {
+                        '$unwind': '$store_info'
+                    }, {
+                        '$lookup': {
+                            'from': 'sales', 
+                            'localField': 'store_info.store_nbr', 
+                            'foreignField': 'store_nbr', 
+                            'as': 'sales_info'
+                        }
+                    }, {
+                        '$unwind': '$sales_info'
+                    }, {
+                        '$lookup': {
+                            'from': 'weather', 
+                            'localField': 'station_nbr', 
+                            'foreignField': 'station_nbr', 
+                            'as': 'weather_info'
+                        }
+                    }, {
+                        '$unwind': '$weather_info'
+                    }, {
+                        '$match': {
+                            'weather_info.snowfall': {
+                                '$gt': 0
+                            }
+                        }
+                    }, {
+                        '$group': {
+                            '_id': '$store_info.store_nbr', 
+                            'total_units_sold': {
+                                '$sum': '$sales_info.units_sold'
+                            }
+                        }
                     }
-                }
-            },
-            {
-                '$project': {
-                    '_id': 0, 
-                    'total_units': 1
-                }
-            }
                 ]
 
                 for i in range(num_iterations):
@@ -275,36 +318,16 @@ def page_internal_user():
                 st.write(f"Average execution time with {num_shards} shards :", average_execution_time, "seconds")
 
                 # client.close()
+
             # Create a Plotly Express scatter plot
             fig = px.scatter(x=shards_list, y=avg_execution_times, labels={'x': 'Shards', 'y': 'Average Execution Time'},
-                            title='My Plot', template='plotly_dark')
+                            title='Average execution time of the query depending of the number of shards', template='plotly_dark')
 
             # Set background color of the plot area
             fig.update_layout(plot_bgcolor='rgba(0,0,0,0)')  # Full transparency
 
             # Display the plot in Streamlit
             st.plotly_chart(fig)
-            # fig, ax = plt.subplots()
-            # fig.patch.set_facecolor(st.get_option("theme.primaryColor"))
-
-            # # Plot the data
-            # ax.plot(shards_list, avg_execution_times, marker='o', linestyle='-', color='lightblue')
-            # ax.set_facecolor(("#FFFFFF"))  # Full transparency
-            # ax.yaxis.grid(False)
-            # # ax.xaxis
-            # # Set plot labels and title
-            # ax.set_xlabel('Shards')
-            # ax.set_ylabel('Average Execution Time')
-            # ax.set_title('Average execution time depending of the number of Shards')
-            # st.pyplot(fig)
-
-            # Plot des temps d'exécution moyens en fonction du nombre de shards
-            # plt.plot(shards_list, avg_execution_times, marker='o', linestyle='-', color='blue')
-            # fig.patch.set_facecolor(st.get_option("theme.primaryColor"))
-            # plt.xlabel('Number of Shards')
-            # plt.ylabel('Mean execution time (s)')
-            # plt.title('Mean execution time depending of the number of Shards')
-            # st.pyplot(plt)
 
     elif onglet_selectionne == "Queries":
         internal_queries()
