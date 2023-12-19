@@ -3,6 +3,7 @@ from pymongo import MongoClient
 import time
 import matplotlib.pyplot as plt
 import plotly.express as px
+import datetime as dt
 
 
 # Connexion à la base de données MongoDB
@@ -29,7 +30,7 @@ def internal_queries():
         if st.button("Run Query 1 (End-User)"):
             mongo_host = 'localhost'
             mongo_port = 27017
-            mongo_database = 'Walmart_cloud'
+            mongo_database = 'WalmartWeather'
             collection_name = 'sales'
             client = MongoClient(f'mongodb://{mongo_host}:{mongo_port}/')
             db = client[mongo_database]
@@ -64,6 +65,48 @@ def internal_queries():
     elif query_choice == "Query 3 (End-User)":
         # Ajoutez ici la logique pour la Query 3 pour l'utilisateur End-User
         st.write("You choose Query 3 (End-User)")
+        if st.button("Run Query 3 (End-User)"):
+            mongo_host = 'localhost'
+            mongo_port = 27017
+            mongo_database = 'WalmartWeather'
+            client = MongoClient(f'mongodb://{mongo_host}:{mongo_port}/')
+            db = client[mongo_database]
+            collection_name = 'sales'
+            collection = db[collection_name]           
+            pipeline = [
+                {
+                    '$match': {
+                        'store_nbr': {
+                            '$in': [
+                                1,2,3
+                            ]
+                        }, 
+                        'date': {
+                            '$gte': dt.datetime(2012, 12, 1, 0, 0, 0, tzinfo=dt.timezone.utc), 
+                            '$lte': dt.datetime(2012, 12, 31, 0, 0, 0, tzinfo=dt.timezone.utc)
+                        }
+                    }
+                }, {
+                    '$group': {
+                        '_id': {
+                            'store_nbr': '$store_nbr', 
+                            'item_nbr': '$item_nbr'
+                        }, 
+                        'total_units': {
+                            '$sum': '$units'
+                        }
+                    }
+                }, {
+                    '$project': {
+                        'store_nbr': '$_id.store_nbr', 
+                        'item_nbr': '$_id.item_nbr', 
+                        'total_units': 1, 
+                        '_id': 0
+                    }
+                }
+            ]
+            result = list(collection.aggregate(pipeline))
+            st.write(result)
     elif query_choice == "Query 4 (End-User)":
         # Ajoutez ici la logique pour la Query 4 pour l'utilisateur End-User
         st.write("You choose Query 4 (End-User)")
@@ -108,6 +151,43 @@ def external_queries():
         st.write("You choose Query 2 (End-User)")
     elif query_choice == "Query 3 (End-User)":
         # Ajoutez ici la logique pour la Query 3 pour l'utilisateur End-User
+        if st.button("Run Query 3 (End-User)"):
+            collection_name = 'sales'
+            collection = db[collection_name]           
+            pipeline = [
+                {
+                    '$match': {
+                        'store_nbr': {
+                            '$in': [
+                                1,2,3
+                            ]
+                        }, 
+                        'date': {
+                            '$gte': dt.datetime(2012, 12, 1, 0, 0, 0, tzinfo=dt.timezone.utc), 
+                            '$lte': dt.datetime(2012, 12, 31, 0, 0, 0, tzinfo=dt.timezone.utc)
+                        }
+                    }
+                }, {
+                    '$group': {
+                        '_id': {
+                            'store_nbr': '$store_nbr', 
+                            'item_nbr': '$item_nbr'
+                        }, 
+                        'total_units': {
+                            '$sum': '$units'
+                        }
+                    }
+                }, {
+                    '$project': {
+                        'store_nbr': '$_id.store_nbr', 
+                        'item_nbr': '$_id.item_nbr', 
+                        'total_units': 1, 
+                        '_id': 0
+                    }
+                }
+            ]
+            result = list(collection.aggregate(pipeline))
+            st.write(result)
         st.write("You choose Query 3 (End-User)")
     elif query_choice == "Query 4 (End-User)":
         # Ajoutez ici la logique pour la Query 4 pour l'utilisateur End-User
