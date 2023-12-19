@@ -2,29 +2,34 @@ import streamlit as st
 from pymongo import MongoClient
 import time
 import matplotlib.pyplot as plt
+import plotly.express as px
+
 
 # Connexion à la base de données MongoDB
-client = MongoClient('mongodb://localhost:27017/')
-db = client['WalmartWeather']
+mongo_host = 'localhost'
+mongo_port = 27017
+mongo_database = 'WalmartWeather'
+client = MongoClient(f'mongodb://{mongo_host}:{mongo_port}/')
+db = client[mongo_database]
 
-# Fonction pour les requêtes spécifiques pour l'utilisateur interne
+# Fonction pour les Querys spécifiques pour l'utilisateur interne
 def internal_queries():
-    st.subheader("Requêtes Internes")
-    query_choice = st.selectbox("Choisissez une requête interne", ("Requête 1 (Interne)", "Requête 2 (Interne)", "Requête 1 (Externe)", "Requête 2 (Externe)", "Requête 3 (Externe)", "Requête 4 (Externe)"))
+    st.subheader("Data Analyst Queries")
+    query_choice = st.selectbox("Choose a Data Analyst Query", ("Query 1 (DA)", "Query 2 (DA)", "Query 1 (End-User)", "Query 2 (End-User)", "Query 3 (End-User)", "Query 4 (End-User)"))
 
-    if query_choice == "Requête 1 (Interne)":
-        # Ajoutez ici la logique pour la requête 1 pour l'utilisateur interne
-        st.write("Vous avez choisi la Requête 1 (Interne)")
-    elif query_choice == "Requête 2 (Interne)":
-        # Ajoutez ici la logique pour la requête 2 pour l'utilisateur interne
-        st.write("Vous avez choisi la Requête 2 (Interne)")
-    elif query_choice == "Requête 1 (Externe)":
-        # Ajoutez ici la logique pour la requête 1 pour l'utilisateur externe
-        st.write("Vous avez choisi la Requête 1 (Externe)")
-        if st.button("Afficher la Requête 1 (Externe)"):
+    if query_choice == "Query 1 (DA)":
+        # Ajoutez ici la logique pour la Query 1 pour l'utilisateur interne
+        st.write("You choose Query 1 (DA)")
+    elif query_choice == "Query 2 (DA)":
+        # Ajoutez ici la logique pour la Query 2 pour l'utilisateur interne
+        st.write("You choose Query 2 (DA)")
+    elif query_choice == "Query 1 (End-User)":
+        # Ajoutez ici la logique pour la Query 1 pour l'utilisateur End-User
+        st.write("You choose Query 1 (End-User)")
+        if st.button("Run Query 1 (End-User)"):
             mongo_host = 'localhost'
             mongo_port = 27017
-            mongo_database = 'WalmartWeather'
+            mongo_database = 'Walmart_cloud'
             collection_name = 'sales'
             client = MongoClient(f'mongodb://{mongo_host}:{mongo_port}/')
             db = client[mongo_database]
@@ -53,31 +58,26 @@ def internal_queries():
             ]
             result = list(collection.aggregate(pipeline))
             st.write(result)
-    elif query_choice == "Requête 2 (Externe)":
-        # Ajoutez ici la logique pour la requête 2 pour l'utilisateur externe
-        st.write("Vous avez choisi la Requête 2 (Externe)")
-    elif query_choice == "Requête 3 (Externe)":
-        # Ajoutez ici la logique pour la requête 3 pour l'utilisateur externe
-        st.write("Vous avez choisi la Requête 3 (Externe)")
-    elif query_choice == "Requête 4 (Externe)":
-        # Ajoutez ici la logique pour la requête 4 pour l'utilisateur externe
-        st.write("Vous avez choisi la Requête 4 (Externe)")
+    elif query_choice == "Query 2 (End-User)":
+        # Ajoutez ici la logique pour la Query 2 pour l'utilisateur End-User
+        st.write("You choose Query 2 (End-User)")
+    elif query_choice == "Query 3 (End-User)":
+        # Ajoutez ici la logique pour la Query 3 pour l'utilisateur End-User
+        st.write("You choose Query 3 (End-User)")
+    elif query_choice == "Query 4 (End-User)":
+        # Ajoutez ici la logique pour la Query 4 pour l'utilisateur End-User
+        st.write("You choose Query 4 (End-User)")
 
-# Fonction pour les requêtes spécifiques pour l'utilisateur externe
+# Fonction pour les Querys spécifiques pour l'utilisateur End-User
 def external_queries():
-    st.subheader("Requêtes Externes")
-    query_choice = st.selectbox("Choisissez une requête externe", ("Requête 1 (Externe)", "Requête 2 (Externe)", "Requête 3 (Externe)", "Requête 4 (Externe)"))
+    st.subheader("Querys End-Users")
+    query_choice = st.selectbox("Choose an End-User query ", ("Query 1 (End-User)", "Query 2 (End-User)", "Query 3 (End-User)", "Query 4 (End-User)"))
 
-    if query_choice == "Requête 1 (Externe)":
-        # Ajoutez ici la logique pour la Requête 1 pour l'utilisateur externe
-        st.write("Vous avez choisi la Requête 1 (Externe)")
-        if st.button("Afficher la Requête 1 (Externe)"):
-            mongo_host = 'localhost'
-            mongo_port = 27017
-            mongo_database = 'WalmartWeather'
+    if query_choice == "Query 1 (End-User)":
+        # Ajoutez ici la logique pour la Query 1 pour l'utilisateur End-User
+        st.write("You choose Query 1 (End-User)")
+        if st.button("Run Query 1 (End-User)"):
             collection_name = 'sales'
-            client = MongoClient(f'mongodb://{mongo_host}:{mongo_port}/')
-            db = client[mongo_database]
             collection = db[collection_name]           
             pipeline = [
             {
@@ -103,53 +103,35 @@ def external_queries():
             ]
             result = list(collection.aggregate(pipeline))
             st.write(result)
-    elif query_choice == "Requête 2 (Externe)":
-        # Ajoutez ici la logique pour la Requête 2 pour l'utilisateur externe
-        st.write("Vous avez choisi la Requête 2 (Externe)")
-    elif query_choice == "Requête 3 (Externe)":
-        # Ajoutez ici la logique pour la Requête 3 pour l'utilisateur externe
-        st.write("Vous avez choisi la Requête 3 (Externe)")
-    elif query_choice == "Requête 4 (Externe)":
-        # Ajoutez ici la logique pour la Requête 4 pour l'utilisateur externe
-        st.write("Vous avez choisi la Requête 4 (Externe)")
+    elif query_choice == "Query 2 (End-User)":
+        # Ajoutez ici la logique pour la Query 2 pour l'utilisateur End-User
+        st.write("You choose Query 2 (End-User)")
+    elif query_choice == "Query 3 (End-User)":
+        # Ajoutez ici la logique pour la Query 3 pour l'utilisateur End-User
+        st.write("You choose Query 3 (End-User)")
+    elif query_choice == "Query 4 (End-User)":
+        # Ajoutez ici la logique pour la Query 4 pour l'utilisateur End-User
+        st.write("You choose Query 4 (End-User)")
 
-# Fonction pour la page utilisateur interne
-def page_internal_user():
-    st.title("Utilisateur Interne")
 
-    onglet_selectionne = st.sidebar.selectbox("Navigation", ("Requête", "Mesure de Performance", "Autre option"))
+# Fonction pour la page de mesure de performance
+def page_performance_measurement():
+    st.subheader("Performance Measurement")
+    # Ajoutez ici la logique pour la Peformance Measurement pour l'utilisateur interne
 
-    if onglet_selectionne == "Mesure de Performance":
-        st.subheader("Mesure de Performance")
-        # Ajoutez ici la logique pour la mesure de performance pour l'utilisateur interne
-        st.subheader("Mesure de Performance")
+    st.write("Select the query you want to evaluate:")
+    query_choice = st.selectbox("Choose a Data Analyst Query", ("Query 1 (DA)", "Query 2 (DA)", "Query 1 (End-User)", "Query 2 (End-User)", "Query 3 (End-User)", "Query 4 (End-User)"))
 
-        st.write("Exemple de pipeline à exécuter :")
-        st.code("""
-        # Votre pipeline donné ici...
-        """)
-
-        num_iterations = st.number_input("Nombre d'itérations pour la mesure de performance", value=10)
-
-        if st.button("Lancer la mesure de performance"):
-            mongo_host = 'localhost'
-            mongo_port = 27017
-            mongo_database = 'WalmartWeather'
-            collection_name = 'sales'
-
-            avg_execution_times = []
-
-            shards_list = list(range(1, 7))
-            plt.figure(figsize=(10, 6))
-
-            for num_shards in shards_list:
-                client = MongoClient(f'mongodb://{mongo_host}:{mongo_port}/')
-                db = client[mongo_database]
-                collection = db[collection_name]
-
-                execution_times = []
-
-                pipeline = [
+    if query_choice == "Query 1 (DA)":
+        # Ajoutez ici la logique pour la Query 1 pour l'utilisateur interne
+        st.write("You choose Query 1 (DA)")
+    elif query_choice == "Query 2 (DA)":
+        # Ajoutez ici la logique pour la Query 2 pour l'utilisateur interne
+        st.write("You choose Query 2 (DA)")
+    elif query_choice == "Query 1 (End-User)":
+        # Ajoutez ici la logique pour la Query 1 pour l'utilisateur End-User
+        collection_name = 'sales'
+        pipeline = [
             {
                 '$match': {
                     'store_nbr': 1, 
@@ -171,54 +153,146 @@ def page_internal_user():
                 }
             }
                 ]
+        
+        st.write("You choose Query 1 (End-User)")
+        st.code("""pipeline = [
+            {
+                '$match': {
+                    'store_nbr': 1, 
+                    'item_nbr': 9
+                }
+            },
+            {
+                '$group': {
+                    '_id': None, 
+                    'total_units': {
+                        '$sum': '$units'
+                    }
+                }
+            },
+            {
+                '$project': {
+                    '_id': 0, 
+                    'total_units': 1
+                }
+            }
+            ]""")
 
-                for i in range(num_iterations):
-                    start_time = time.time()
-                    result = list(collection.aggregate(pipeline))
-                    end_time = time.time()
-                    execution_time = end_time - start_time
-                    execution_times.append(execution_time)
+    num_iterations = st.number_input("Number of iterations for Peformance Measurement", value=10)
 
-                execution_times = sorted(execution_times)[1:-1]
-                average_execution_time = sum(execution_times) / len(execution_times)
-                avg_execution_times.append(average_execution_time)
+    if st.button("Start Peformance Measurement"):
+        
 
-                st.write(f"Temps d'exécution moyen avec {num_shards} shards :", average_execution_time, "secondes")
+        avg_execution_times = []
+################################### CHANGER RANGE(1,7) ###################################################
+        shards_list = list(range(1, 7))
+        plt.figure(figsize=(10, 6))
 
-                client.close()
+        for num_shards in shards_list:
+            collection = db[collection_name]
 
-            # Plot des temps d'exécution moyens en fonction du nombre de shards
-            plt.plot(shards_list, avg_execution_times, marker='o', linestyle='-', color='blue')
-            plt.xlabel('Nombre de Shards')
-            plt.ylabel('Temps d\'exécution moyen (s)')
-            plt.title('Temps d\'exécution moyen en fonction du nombre de Shards')
-            st.pyplot(plt)
-    elif onglet_selectionne == "Autre Option":
-        st.subheader("Autre Option")
-        # Ajoutez ici d'autres composants pour d'autres fonctionnalités pour l'utilisateur interne
+            execution_times = []
 
-    elif onglet_selectionne == "Requête":
+            for i in range(num_iterations):
+                start_time = time.time()
+                result = list(collection.aggregate(pipeline))
+                end_time = time.time()
+                execution_time = end_time - start_time
+                execution_times.append(execution_time)
+
+            execution_times = sorted(execution_times)[1:-1]
+            average_execution_time = sum(execution_times) / len(execution_times)
+            avg_execution_times.append(average_execution_time)
+
+            st.write(f"Average execution time with {num_shards} shards :", average_execution_time, "seconds")
+
+            # client.close()
+        # Create a Plotly Express scatter plot
+        fig = px.scatter(x=shards_list, y=avg_execution_times, labels={'x': 'Shards', 'y': 'Average Execution Time'},
+                        title='My Plot', template='plotly_dark')
+
+        # Set background color of the plot area
+        fig.update_layout(plot_bgcolor='rgba(0,0,0,0)')  # Full transparency
+
+        # Display the plot in Streamlit
+        st.plotly_chart(fig)
+        # fig, ax = plt.subplots()
+        # fig.patch.set_facecolor(st.get_option("theme.primaryColor"))
+
+        # # Plot the data
+        # ax.plot(shards_list, avg_execution_times, marker='o', linestyle='-', color='lightblue')
+        # ax.set_facecolor(("#FFFFFF"))  # Full transparency
+        # ax.yaxis.grid(False)
+        # # ax.xaxis
+        # # Set plot labels and title
+        # ax.set_xlabel('Shards')
+        # ax.set_ylabel('Average Execution Time')
+        # ax.set_title('Average execution time depending of the number of Shards')
+        # st.pyplot(fig)
+
+        # Plot des temps d'exécution moyens en fonction du nombre de shards
+        # plt.plot(shards_list, avg_execution_times, marker='o', linestyle='-', color='blue')
+        # fig.patch.set_facecolor(st.get_option("theme.primaryColor"))
+        # plt.xlabel('Number of Shards')
+        # plt.ylabel('Mean execution time (s)')
+        # plt.title('Mean execution time depending of the number of Shards')
+        # st.pyplot(plt)
+
+# Fonction pour la page data statistiques administrateur
+def data_stat_admin():
+    call= db.command("dbstats")
+    datasize = call['dataSize'] / 1024
+    objects = call['objects']
+    collections = call['collections']
+    st.write("Database Distribution Statistics  : ")
+    st.write('\n')
+    st.write('Objects:', str(objects))
+    st.write('Collections:', str(collections))
+    st.write('Size:', str(datasize) + ' Mb')
+    st.write('\n')
+    
+
+# Fonction pour la page utilisateur interne
+def page_internal_user():
+    st.title("Data Analyst User")
+
+    onglet_selectionne = st.sidebar.selectbox("Navigation", ("Queries", "Performance Measurement"))
+
+    if onglet_selectionne == "Performance Measurement":
+        page_performance_measurement()
+
+    elif onglet_selectionne == "Queries":
         internal_queries()
 
-# Fonction pour la page utilisateur externe
+# Fonction pour la page utilisateur End-User
 def page_external_user():
-    st.title("Utilisateur Externe")
+    st.title("End-User")
 
-    onglet_selectionne = st.sidebar.selectbox("Navigation", ("Requête", "Autre option"))
+    # onglet_selectionne = st.sidebar.selectbox("Navigation", "Queries")
 
-    if onglet_selectionne == "Autre Option":
-        st.subheader("Autre Option")
-        # Ajoutez ici d'autres composants pour d'autres fonctionnalités pour l'utilisateur externe
+    # if onglet_selectionne == "Autre Option":
+    #     st.subheader("Autre Option")
+    #     # Ajoutez ici d'autres composants pour d'autres fonctionnalités pour l'utilisateur End-User
 
-    elif onglet_selectionne == "Requête":
-        external_queries()
+    # if onglet_selectionne == "Queries":
+    #     external_queries()
+    external_queries()
 
+# Fonction pour la page Administrateur
+def page_admin():
+    st.title("Administrator")
+    onglet_selectionne = st.sidebar.selectbox("Navigation", ("Data Distribution Statistics", "Cluster State", "Data Repartition", "Indexes"))
+
+    if onglet_selectionne == "Data Distribution Statistics":
+        data_stat_admin()
 # Interface utilisateur Streamlit
 st.title("Walmart Weather 🌧")  
+# st.set_page_config(page_title="Walmart Weather 🌧", layout="wide", bg_color="lightblue")
+user_level = st.selectbox("Select your user level ", ("Data Analyst", "End-User", "Administrator"))
 
-user_level = st.selectbox("Sélectionnez votre niveau d'utilisateur", ("Interne", "Externe"))
-
-if user_level == "Interne":
+if user_level == "Data Analyst":
     page_internal_user()
-elif user_level == "Externe":
+elif user_level == "End-User":
     page_external_user()
+elif user_level == "Administrator":
+    page_admin()
