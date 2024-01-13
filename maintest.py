@@ -4,13 +4,15 @@ import time
 import matplotlib.pyplot as plt
 import plotly.express as px
 import datetime as dt
+import json
+import pandas as pd
 
 
 # Connexion à la base de données MongoDB
-mongo_host = 'localhost'
-mongo_port = 27017
-mongo_database = 'WalmartWeather'
-client = MongoClient(f'mongodb://{mongo_host}:{mongo_port}/')
+
+mongo_database = 'Walmart'
+mongo_cloud_url = 'mongodb+srv://username:Walmart@wlamart.pwzpbh8.mongodb.net/'
+client = MongoClient(mongo_cloud_url)
 db = client[mongo_database]
 
 # Fonction pour les Querys spécifiques pour l'utilisateur interne
@@ -28,12 +30,7 @@ def internal_queries():
         # Ajoutez ici la logique pour la Query 1 pour l'utilisateur End-User
         st.write("You choose Query 1 (End-User)")
         if st.button("Run Query 1 (End-User)"):
-            mongo_host = 'localhost'
-            mongo_port = 27017
-            mongo_database = 'WalmartWeather'
             collection_name = 'sales'
-            client = MongoClient(f'mongodb://{mongo_host}:{mongo_port}/')
-            db = client[mongo_database]
             collection = db[collection_name]           
             pipeline = [
             {
@@ -62,15 +59,11 @@ def internal_queries():
     elif query_choice == "Query 2 (End-User)":
         # Ajoutez ici la logique pour la Query 2 pour l'utilisateur End-User
         st.write("You choose Query 2 (End-User)")
+
     elif query_choice == "Query 3 (End-User)":
         # Ajoutez ici la logique pour la Query 3 pour l'utilisateur End-User
         st.write("You choose Query 3 (End-User)")
         if st.button("Run Query 3 (End-User)"):
-            mongo_host = 'localhost'
-            mongo_port = 27017
-            mongo_database = 'WalmartWeather'
-            client = MongoClient(f'mongodb://{mongo_host}:{mongo_port}/')
-            db = client[mongo_database]
             collection_name = 'sales'
             collection = db[collection_name]           
             pipeline = [
@@ -107,9 +100,48 @@ def internal_queries():
             ]
             result = list(collection.aggregate(pipeline))
             st.write(result)
+
     elif query_choice == "Query 4 (End-User)":
         # Ajoutez ici la logique pour la Query 4 pour l'utilisateur End-User
         st.write("You choose Query 4 (End-User)")
+        if st.button("Run Query 4 (End-User)"):
+            collection_name = 'sales'
+            collection = db[collection_name]           
+            pipeline = [
+                {
+                    '$match': {
+                        'item_nbr': {
+                            '$in': [
+                                105
+                            ]
+                        }, 
+                        'date': {
+                            '$gte': dt.datetime(2012, 12, 1, 0, 0, 0, tzinfo=dt.timezone.utc), 
+                            '$lte': dt.datetime(2012, 12, 31, 0, 0, 0, tzinfo=dt.timezone.utc)
+                        }
+                    }
+                }, {
+                    '$group': {
+                        '_id': {
+                            'store_nbr': '$store_nbr', 
+                            'item_nbr': '$item_nbr'
+                        }, 
+                        'total_units': {
+                            '$sum': '$units'
+                        }
+                    }
+                }, {
+                    '$project': {
+                        'store_nbr': '$_id.store_nbr', 
+                        'item_nbr': '$_id.item_nbr', 
+                        'total_units': 1, 
+                        '_id': 0
+                    }
+                }
+            ]
+            result = list(collection.aggregate(pipeline))
+            st.write(result)
+        
 
 # Fonction pour les Querys spécifiques pour l'utilisateur End-User
 def external_queries():
@@ -192,6 +224,42 @@ def external_queries():
     elif query_choice == "Query 4 (End-User)":
         # Ajoutez ici la logique pour la Query 4 pour l'utilisateur End-User
         st.write("You choose Query 4 (End-User)")
+        if st.button("Run Query 4 (End-User)"):
+            collection_name = 'sales'
+            collection = db[collection_name]           
+            pipeline = [
+                {
+                    '$match': {
+                        'item_nbr': {
+                            '$in': [
+                                105
+                            ]
+                        }, 
+                        'date': {
+                            '$gte': dt.datetime(2012, 12, 1, 0, 0, 0, tzinfo=dt.timezone.utc), 
+                            '$lte': dt.datetime(2012, 12, 31, 0, 0, 0, tzinfo=dt.timezone.utc)
+                        }
+                    }
+                }, {
+                    '$group': {
+                        '_id': {
+                            'store_nbr': '$store_nbr', 
+                            'item_nbr': '$item_nbr'
+                        }, 
+                        'total_units': {
+                            '$sum': '$units'
+                        }
+                    }
+                }, {
+                    '$project': {
+                        'store_nbr': '$_id.store_nbr', 
+                        'item_nbr': '$_id.item_nbr', 
+                        'total_units': 1, 
+                        '_id': 0
+                    }
+                }
+            ]
+            result = list(collection.aggregate(pipeline))
 
 
 # Fonction pour la page de mesure de performance
