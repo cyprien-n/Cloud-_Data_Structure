@@ -47,7 +47,65 @@ EU1 = [
             }
             ]
 
-EU2 = []
+EU2 = [
+    {
+        '$match': {
+            'store_nbr': 30
+        }
+    }, {
+        '$lookup': {
+            'from': 'weather', 
+            'localField': 'station_nbr', 
+            'foreignField': 'station_nbr', 
+            'as': 'weather_info'
+        }
+    }, {
+        '$unwind': '$weather_info'
+    }, {
+        '$match': {
+            'weather_info.snowfall': {
+                '$gt': 2
+            }
+        }
+    }, {
+        '$lookup': {
+            'from': 'sales', 
+            'let': {
+                'store_nbr': '$store_nbr', 
+                'weather_date': '$weather_info.date'
+            }, 
+            'pipeline': [
+                {
+                    '$match': {
+                        '$expr': {
+                            '$and': [
+                                {
+                                    '$eq': [
+                                        '$store_nbr', '$$store_nbr'
+                                    ]
+                                }, {
+                                    '$eq': [
+                                        '$date', '$$weather_date'
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                }
+            ], 
+            'as': 'sales_info'
+        }
+    }, {
+        '$unwind': '$sales_info'
+    }, {
+        '$group': {
+            '_id': '$store_nbr', 
+            'total_units_sold': {
+                '$sum': '$sales_info.units'
+            }
+        }
+    }
+]
 
 EU3 = [
                 {
