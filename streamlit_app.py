@@ -634,18 +634,25 @@ def indexes():
     st.write(f"Total Index Size : {stats['totalIndexSize']}")
     st.write(f"Number of Indexes: {stats['nindexes']}")
     indexes = db['sales'].list_indexes()
+    st.write('Index names : ')
     for index in indexes:
-        st.write(f"Index Name: {index['name']}")
+        st.write(f" - Index Name: {index['name']}")
 
-    st.write("Stores collection indexes : ")
+    st.write("STORES COLLECTION INDEXES : ")
+    stats = db.command("collStats", "stores")
+    st.write(f"Total Index Size : {stats['totalIndexSize']}")
+    st.write(f"Number of Indexes: {stats['nindexes']}")
     indexes = db['stores'].list_indexes()
     for index in indexes:
-        st.write(f"Index Name: {index['name']}")
+        st.write(f" - Index Name: {index['name']}")
 
-    st.write("\Weather collection indexes : ")
+    st.write("WEATHER COLLECTION INDEXES : ")
+    stats = db.command("collStats", "weather")
+    st.write(f"Total Index Size : {stats['totalIndexSize']}")
+    st.write(f"Number of Indexes: {stats['nindexes']}")
     indexes = db['weather'].list_indexes()
     for index in indexes:
-        st.write(f"Index Name: {index['name']}")
+        st.write(f" - Index Name: {index['name']}")
 
 def page_admin():
     st.title("Administrator")
