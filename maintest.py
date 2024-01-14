@@ -1,3 +1,6 @@
+###########################################                Imports                 #########################################################
+
+
 import streamlit as st
 from pymongo import MongoClient
 import time
@@ -8,33 +11,119 @@ import json
 import pandas as pd
 
 
-# Connexion to MongoDB database
+###########################################     Connexion to MongoDB database     #########################################################
+
 mongo_database = 'Walmart'
 mongo_cloud_url = 'mongodb+srv://username:Walmart@wlamart.pwzpbh8.mongodb.net/'
 client = MongoClient(mongo_cloud_url)
 db = client[mongo_database]
 
 
-# Function for the actions limited to data analysts:
-def da_queries():
-    st.subheader("Data Analyst Queries")
-    # A menu where the DA can select the query they want:
-    query_choice = st.selectbox("Choose a Data Analyst Query", ("Query 1 (DA)", "Query 2 (DA)", "Query 1 (End-User)", "Query 2 (End-User)", "Query 3 (End-User)", "Query 4 (End-User)"), index=0)
-    if query_choice == "Query 1 (DA)":
-        st.write("You choose Query 1 (DA)")
-    elif query_choice == "Query 2 (DA)":
-        st.write("You choose Query 2 (DA)")
-        collection_name = 'stores'
-        collection = db[collection_name] 
-        # Parameter Streamlit so that the DA can parameter the query in a menu (here they can choose the value of store_nbr they want for the query):
-        unique_store_nbr_values = collection.distinct('store_nbr')
-        selected_store_nbr = st.selectbox("Choose the store_nbr", unique_store_nbr_values, index=0)
-        #One the DA has set the parameter they want for the query, the query runs : 
-        if st.button("Run Query 2 (DA)"):   
-            pipeline = [
+###########################################         Defining the queries          #########################################################
+
+
+EU1 = [
+            {
+                '$match': {
+                    'store_nbr': 1, 
+                    'item_nbr': 9
+                }
+            },
+            {
+                '$group': {
+                    '_id': None, 
+                    'total_units': {
+                        '$sum': '$units'
+                    }
+                }
+            },
+            {
+                '$project': {
+                    '_id': 0, 
+                    'total_units': 1
+                }
+            }
+            ]
+
+EU2 = []
+
+EU3 = [
                 {
                     '$match': {
-                        'store_nbr': selected_store_nbr # Parameter set by the DA
+                        'store_nbr': {
+                            '$in': [
+                                1
+                            ]
+                        }, 
+                        'date': {
+                            '$gte': dt.datetime(2012, 1, 1, 0, 0, 0, tzinfo=dt.timezone.utc), 
+                            '$lte': dt.datetime(2012, 1, 31, 0, 0, 0, tzinfo=dt.timezone.utc)
+                        }
+                    }
+                }, {
+                    '$group': {
+                        '_id': {
+                            'store_nbr': '$store_nbr', 
+                            'item_nbr': '$item_nbr'
+                        }, 
+                        'total_units': {
+                            '$sum': '$units'
+                        }
+                    }
+                }, {
+                    '$project': {
+                        'store_nbr': 1, 
+                        'item_nbr': '$_id.item_nbr', 
+                        'total_units': 1, 
+                        '_id': 0
+                    }
+                }, {
+                    '$sort': {'item_nbr': 1} 
+                   }
+            ]
+
+EU4 = [
+                {
+                    '$match': {
+                        'item_nbr': {
+                            '$in': [
+                                5
+                            ]
+                        }, 
+                        'date': {
+                            '$gte': dt.datetime(2012, 1, 1, 0, 0, 0, tzinfo=dt.timezone.utc), 
+                            '$lte': dt.datetime(2012, 1, 31, 0, 0, 0, tzinfo=dt.timezone.utc)
+                        }
+                    }
+                }, {
+                    '$group': {
+                        '_id': {
+                            'store_nbr': '$store_nbr', 
+                            'item_nbr': '$item_nbr'
+                        }, 
+                        'total_units': {
+                            '$sum': '$units'
+                        }
+                    }
+                }, {
+                    '$project': {
+                        'store_nbr': '$_id.store_nbr', 
+                        'item_nbr': 1, 
+                        'total_units': 1, 
+                        '_id': 0
+                    }
+                }, {
+                    '$sort': {'store_nbr': 1} 
+                   }
+            ]
+
+
+DA1 = []
+
+DA2 = [
+                {
+                    '$match': {
+                        'store_nbr': 30 # Parameter the query by setting this value
                     }
                 }, {
                     '$lookup': {
@@ -93,6 +182,101 @@ def da_queries():
                             }
             ]
 
+
+###########################################     Function for the actions limited to data analysts     #########################################################
+
+def da_queries():
+    st.subheader("Data Analyst Queries")
+    # A menu where the DA can select the query they want:
+    query_choice = st.selectbox("Choose a Data Analyst Query", ("Query 1 (DA)", "Query 2 (DA)", "Query 1 (End-User)", "Query 2 (End-User)", "Query 3 (End-User)", "Query 4 (End-User)"), index=0)
+
+    if query_choice == "Query 1 (DA)":
+        st.write("You choose Query 1 (DA)")
+        collection_name = 'stores'
+        collection = db[collection_name] 
+        # Parameter Streamlit so that the DA can parameter the query in a menu (here they can choose the value of store_nbr they want for the query):
+        unique_store_nbr_values = collection.distinct('store_nbr')
+        selected_store_nbr = st.selectbox("Choose the store_nbr", unique_store_nbr_values, index=0)
+        #One the DA has set the parameter they want for the query, the query runs : 
+        if st.button("Run Query 1 (DA)"):   
+            pipeline = DA1
+            # Displaying the result as a dataframe 
+            result = list(collection.aggregate(pipeline))
+            df_da1 = pd.DataFrame(result)
+            st.write("This query returns the number of items sold out of all the items from the store 1 during snow days.")
+            st.write(df_da1)
+
+    elif query_choice == "Query 2 (DA)":
+        st.write("You choose Query 2 (DA):")
+        st.write(DA2)
+        collection_name = 'stores'
+        collection = db[collection_name] 
+        # Parameter Streamlit so that the DA can parameter the query in a menu (here they can choose the value of store_nbr they want for the query):
+        unique_store_nbr_values = collection.distinct('store_nbr')
+        selected_store_nbr = st.selectbox("Choose the store_nbr", unique_store_nbr_values, index=0)
+        #One the DA has set the parameter they want for the query, the query runs : 
+        if st.button("Run Query 2 (DA)"):   
+            pipeline = [
+                {
+                    '$match': {
+                        'store_nbr': selected_store_nbr # Parameter the query by setting this value
+                    }
+                }, {
+                    '$lookup': {
+                        'from': 'weather', 
+                        'localField': 'station_nbr', 
+                        'foreignField': 'station_nbr', 
+                        'as': 'weather_info'
+                    }
+                }, {
+                    '$unwind': '$weather_info'
+                }, {
+                    '$match': {
+                        'weather_info.snowfall': {
+                            '$gt': 2
+                        }
+                    }
+                }, {
+                    '$lookup': {
+                        'from': 'sales', 
+                        'let': {
+                            'store_nbr': '$store_nbr', 
+                            'weather_date': '$weather_info.date'
+                        }, 
+                        'pipeline': [
+                            {
+                                '$match': {
+                                    '$expr': {
+                                        '$and': [
+                                            {
+                                                '$eq': [
+                                                    '$store_nbr', '$$store_nbr'
+                                                ]
+                                            }, {
+                                                '$eq': [
+                                                    '$date', '$$weather_date'
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        ], 
+                        'as': 'sales_info'
+                    }
+                }, {
+                    '$unwind': '$sales_info'
+                }, {
+                    '$group': {
+                        '_id': '$store_nbr', 
+                        'total_units_sold': {
+                        '$sum': '$sales_info.units'
+                        }
+                    }
+                },{
+                                '$sort': {'total_units': -1} 
+                            }
+            ]
             # Displaying the result as a dataframe 
             result = list(collection.aggregate(pipeline))
             df_da2 = pd.DataFrame(result)
@@ -104,80 +288,32 @@ def da_queries():
         if st.button("Run Query 1 (End-User)"):
             collection_name = 'sales'
             collection = db[collection_name]           
-            pipeline = [
-            {
-                '$match': {
-                    'store_nbr': 1, 
-                    'item_nbr': 9
-                }
-            },
-            {
-                '$group': {
-                    '_id': None, 
-                    'total_units': {
-                        '$sum': '$units'
-                    }
-                }
-            },
-            {
-                '$project': {
-                    '_id': 0, 
-                    'total_units': 1
-                }
-            }
-            ]
-            
+            pipeline = EU1
             # Displaying the result as a dataframe 
             result = list(collection.aggregate(pipeline))
             df_eu1 = pd.DataFrame(result)
             st.write("This query returns the number of sales of item_nbr 5 across all stores in the month of January.")
             st.write(df_eu1[ 'total_units'])
             st.write(df_eu1)
+
     elif query_choice == "Query 2 (End-User)":
-        # Ajoutez ici la logique pour la Query 2 pour l'utilisateur End-User
         st.write("You choose Query 2 (End-User)")
+        if st.button("Run Query 2 (End-User)"):
+            collection_name = 'sales'
+            collection = db[collection_name]           
+            pipeline = EU2
+            # Displaying the result as a dataframe 
+            result = list(collection.aggregate(pipeline))
+            df_eu2 = pd.DataFrame(result)
+            st.write("This query returns the number of sales of all items from the store 1 in the month of February.")
+            st.write(df_eu2[['item_nbr', 'total_units']])
 
     elif query_choice == "Query 3 (End-User)":
-        # Ajoutez ici la logique pour la Query 3 pour l'utilisateur End-User
         st.write("You choose Query 3 (End-User)")
         if st.button("Run Query 3 (End-User)"):
             collection_name = 'sales'
             collection = db[collection_name]           
-            pipeline = [
-                {
-                    '$match': {
-                        'store_nbr': {
-                            '$in': [
-                                1
-                            ]
-                        }, 
-                        'date': {
-                            '$gte': dt.datetime(2012, 1, 1, 0, 0, 0, tzinfo=dt.timezone.utc), 
-                            '$lte': dt.datetime(2012, 1, 31, 0, 0, 0, tzinfo=dt.timezone.utc)
-                        }
-                    }
-                }, {
-                    '$group': {
-                        '_id': {
-                            'store_nbr': '$store_nbr', 
-                            'item_nbr': '$item_nbr'
-                        }, 
-                        'total_units': {
-                            '$sum': '$units'
-                        }
-                    }
-                }, {
-                    '$project': {
-                        'store_nbr': 1, 
-                        'item_nbr': '$_id.item_nbr', 
-                        'total_units': 1, 
-                        '_id': 0
-                    }
-                }, {
-                    '$sort': {'item_nbr': 1} 
-                   }
-            ]
-
+            pipeline = EU3
             # Displaying the result as a dataframe 
             result = list(collection.aggregate(pipeline))
             df_eu3 = pd.DataFrame(result)
@@ -190,41 +326,7 @@ def da_queries():
         if st.button("Run Query 4 (End-User)"):
             collection_name = 'sales'
             collection = db[collection_name]           
-            pipeline = [
-                {
-                    '$match': {
-                        'item_nbr': {
-                            '$in': [
-                                5
-                            ]
-                        }, 
-                        'date': {
-                            '$gte': dt.datetime(2012, 2, 1, 0, 0, 0, tzinfo=dt.timezone.utc), 
-                            '$lte': dt.datetime(2012, 2, 31, 0, 0, 0, tzinfo=dt.timezone.utc)
-                        }
-                    }
-                }, {
-                    '$group': {
-                        '_id': {
-                            'store_nbr': '$store_nbr', 
-                            'item_nbr': '$item_nbr'
-                        }, 
-                        'total_units': {
-                            '$sum': '$units'
-                        }
-                    }
-                }, {
-                    '$project': {
-                        'store_nbr': '$_id.store_nbr', 
-                        'item_nbr': 1, 
-                        'total_units': 1, 
-                        '_id': 0
-                    }
-                }, {
-                    '$sort': {'store_nbr': 1} 
-                   }
-            ]
-
+            pipeline = EU4
             # Displaying the result as a dataframe 
             result = list(collection.aggregate(pipeline))
             df_eu4 = pd.DataFrame(result)
@@ -233,7 +335,9 @@ def da_queries():
 
         
 
-# Function for the actions limited to end-users :
+
+###########################################     Function for the actions limited to end-users      #########################################################
+
 def eu_queries():
     st.subheader("End-User queries")
     query_choice = st.selectbox("Choose an End-User query ", ("Query 1 (End-User)", "Query 2 (End-User)", "Query 3 (End-User)", "Query 4 (End-User)"))
@@ -244,112 +348,39 @@ def eu_queries():
         if st.button("Run Query 1 (End-User)"):
             collection_name = 'sales'
             collection = db[collection_name]           
-            pipeline = [
-            {
-                '$match': {
-                    'store_nbr': 1, 
-                    'item_nbr': 9
-                }
-            },
-            {
-                '$group': {
-                    '_id': None, 
-                    'total_units': {
-                        '$sum': '$units'
-                    }
-                }
-            },
-            {
-                '$project': {
-                    '_id': 0, 
-                    'total_units': 1
-                }
-            }
-            ]
+            pipeline = EU1
             result = list(collection.aggregate(pipeline))
-            st.write(result)
+            df_eu1 = pd.DataFrame(result)
+            st.write("This query returns the number of sales of item_nbr 5 across all stores in the month of January.")
+            # st.write(df_eu1['total_units'])
+            st.write(df_eu1)
+
     elif query_choice == "Query 2 (End-User)":
         # Ajoutez ici la logique pour la Query 2 pour l'utilisateur End-User
         st.write("You choose Query 2 (End-User)")
+
     elif query_choice == "Query 3 (End-User)":
         # Ajoutez ici la logique pour la Query 3 pour l'utilisateur End-User
         if st.button("Run Query 3 (End-User)"):
             collection_name = 'sales'
             collection = db[collection_name]           
-            pipeline = [
-                {
-                    '$match': {
-                        'store_nbr': {
-                            '$in': [
-                                1,2,3
-                            ]
-                        }, 
-                        'date': {
-                            '$gte': dt.datetime(2012, 12, 1, 0, 0, 0, tzinfo=dt.timezone.utc), 
-                            '$lte': dt.datetime(2012, 12, 31, 0, 0, 0, tzinfo=dt.timezone.utc)
-                        }
-                    }
-                }, {
-                    '$group': {
-                        '_id': {
-                            'store_nbr': '$store_nbr', 
-                            'item_nbr': '$item_nbr'
-                        }, 
-                        'total_units': {
-                            '$sum': '$units'
-                        }
-                    }
-                }, {
-                    '$project': {
-                        'store_nbr': '$_id.store_nbr', 
-                        'item_nbr': '$_id.item_nbr', 
-                        'total_units': 1, 
-                        '_id': 0
-                    }
-                }
-            ]
+            pipeline = EU3 
             result = list(collection.aggregate(pipeline))
-            st.write(result)
-        st.write("You choose Query 3 (End-User)")
+            df_eu3 = pd.DataFrame(result)
+            st.write("This query returns the number of sales of all items from the store 1 in the month of February.")
+            st.write(df_eu3[['item_nbr', 'total_units']])
+
     elif query_choice == "Query 4 (End-User)":
         # Ajoutez ici la logique pour la Query 4 pour l'utilisateur End-User
         st.write("You choose Query 4 (End-User)")
         if st.button("Run Query 4 (End-User)"):
             collection_name = 'sales'
             collection = db[collection_name]           
-            pipeline = [
-                {
-                    '$match': {
-                        'item_nbr': {
-                            '$in': [
-                                105
-                            ]
-                        }, 
-                        'date': {
-                            '$gte': dt.datetime(2012, 12, 1, 0, 0, 0, tzinfo=dt.timezone.utc), 
-                            '$lte': dt.datetime(2012, 12, 31, 0, 0, 0, tzinfo=dt.timezone.utc)
-                        }
-                    }
-                }, {
-                    '$group': {
-                        '_id': {
-                            'store_nbr': '$store_nbr', 
-                            'item_nbr': '$item_nbr'
-                        }, 
-                        'total_units': {
-                            '$sum': '$units'
-                        }
-                    }
-                }, {
-                    '$project': {
-                        'store_nbr': '$_id.store_nbr', 
-                        'item_nbr': '$_id.item_nbr', 
-                        'total_units': 1, 
-                        '_id': 0
-                    }
-                }
-            ]
+            pipeline = EU4
             result = list(collection.aggregate(pipeline))
+            df_eu4 = pd.DataFrame(result)
+            st.write("This query returns the number of sales of item_nbr 5 across all stores in the month of January.")
+            st.write(df_eu4[['store_nbr', 'total_units']])
 
 
 # Fonction pour la page de mesure de performance
@@ -530,10 +561,10 @@ st.title("Walmart Weather 🌧")
 # st.set_page_config(page_title="Walmart Weather 🌧", layout="wide", bg_color="lightblue")
 user_level = st.selectbox("Select your user level ", ("End-User", "Data Analyst", "Administrator"), index=0)
 
-if st.button("Show Content"):
-    if user_level == "Data Analyst":
-        page_data_analyst()
-    elif user_level == "End-User":
-        page_end_user()
-    elif user_level == "Administrator":
-        page_admin()
+# if st.button("Show Content"):
+if user_level == "Data Analyst":
+    page_data_analyst()
+elif user_level == "End-User":
+    page_end_user()
+elif user_level == "Administrator":
+    page_admin()
