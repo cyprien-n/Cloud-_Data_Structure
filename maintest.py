@@ -8,34 +8,33 @@ import json
 import pandas as pd
 
 
-# Connexion à la base de données MongoDB
-
+# Connexion to MongoDB database
 mongo_database = 'Walmart'
 mongo_cloud_url = 'mongodb+srv://username:Walmart@wlamart.pwzpbh8.mongodb.net/'
 client = MongoClient(mongo_cloud_url)
 db = client[mongo_database]
 
-# Fonction pour les Querys spécifiques pour l'utilisateur interne
-def internal_queries():
-    st.subheader("Data Analyst Queries")
-    query_choice = st.selectbox("Choose a Data Analyst Query", ("Query 1 (DA)", "Query 2 (DA)", "Query 1 (End-User)", "Query 2 (End-User)", "Query 3 (End-User)", "Query 4 (End-User)"))
 
+# Function for the actions limited to data analysts:
+def da_queries():
+    st.subheader("Data Analyst Queries")
+    # A menu where the DA can select the query they want:
+    query_choice = st.selectbox("Choose a Data Analyst Query", ("Query 1 (DA)", "Query 2 (DA)", "Query 1 (End-User)", "Query 2 (End-User)", "Query 3 (End-User)", "Query 4 (End-User)"), index=0)
     if query_choice == "Query 1 (DA)":
-        # Ajoutez ici la logique pour la Query 1 pour l'utilisateur interne
         st.write("You choose Query 1 (DA)")
     elif query_choice == "Query 2 (DA)":
-        # Ajoutez ici la logique pour la Query 3 pour l'utilisateur End-User
         st.write("You choose Query 2 (DA)")
         collection_name = 'stores'
         collection = db[collection_name] 
-        # Parameter Streamlit to choose the value of store_nbr
+        # Parameter Streamlit so that the DA can parameter the query in a menu (here they can choose the value of store_nbr they want for the query):
         unique_store_nbr_values = collection.distinct('store_nbr')
         selected_store_nbr = st.selectbox("Choose the store_nbr", unique_store_nbr_values, index=0)
+        #One the DA has set the parameter they want for the query, the query runs : 
         if st.button("Run Query 2 (DA)"):   
             pipeline = [
                 {
                     '$match': {
-                        'store_nbr': selected_store_nbr
+                        'store_nbr': selected_store_nbr # Parameter set by the DA
                     }
                 }, {
                     '$lookup': {
@@ -93,13 +92,14 @@ def internal_queries():
                                 '$sort': {'total_units': -1} 
                             }
             ]
+
+            # Displaying the result as a dataframe 
             result = list(collection.aggregate(pipeline))
             df_da2 = pd.DataFrame(result)
             st.write("This query returns the number of items sold out of all the items from the store 1 during snow days.")
             st.write(df_da2)
 
     elif query_choice == "Query 1 (End-User)":
-        # Ajoutez ici la logique pour la Query 1 pour l'utilisateur End-User
         st.write("You choose Query 1 (End-User)")
         if st.button("Run Query 1 (End-User)"):
             collection_name = 'sales'
@@ -126,8 +126,13 @@ def internal_queries():
                 }
             }
             ]
+            
+            # Displaying the result as a dataframe 
             result = list(collection.aggregate(pipeline))
-            st.write(result)
+            df_eu1 = pd.DataFrame(result)
+            st.write("This query returns the number of sales of item_nbr 5 across all stores in the month of January.")
+            st.write(df_eu1[ 'total_units'])
+            st.write(df_eu1)
     elif query_choice == "Query 2 (End-User)":
         # Ajoutez ici la logique pour la Query 2 pour l'utilisateur End-User
         st.write("You choose Query 2 (End-User)")
@@ -172,6 +177,8 @@ def internal_queries():
                     '$sort': {'item_nbr': 1} 
                    }
             ]
+
+            # Displaying the result as a dataframe 
             result = list(collection.aggregate(pipeline))
             df_eu3 = pd.DataFrame(result)
             st.write("This query returns the number of sales of all items from the store 1 in the month of February.")
@@ -218,6 +225,7 @@ def internal_queries():
                    }
             ]
 
+            # Displaying the result as a dataframe 
             result = list(collection.aggregate(pipeline))
             df_eu4 = pd.DataFrame(result)
             st.write("This query returns the number of sales of item_nbr 5 across all stores in the month of January.")
@@ -225,9 +233,9 @@ def internal_queries():
 
         
 
-# Fonction pour les Querys spécifiques pour l'utilisateur End-User
-def external_queries():
-    st.subheader("Querys End-Users")
+# Function for the actions limited to end-users :
+def eu_queries():
+    st.subheader("End-User queries")
     query_choice = st.selectbox("Choose an End-User query ", ("Query 1 (End-User)", "Query 2 (End-User)", "Query 3 (End-User)", "Query 4 (End-User)"))
 
     if query_choice == "Query 1 (End-User)":
@@ -350,7 +358,7 @@ def page_performance_measurement():
     # Ajoutez ici la logique pour la Peformance Measurement pour l'utilisateur interne
 
     st.write("Select the query you want to evaluate:")
-    query_choice = st.selectbox("Choose a Data Analyst Query", ("Query 1 (DA)", "Query 2 (DA)", "Query 1 (End-User)", "Query 2 (End-User)", "Query 3 (End-User)", "Query 4 (End-User)"))
+    query_choice = st.selectbox("Choose a Data Analyst Query", ("Query 1 (DA)", "Query 2 (DA)", "Query 1 (End-User)", "Query 2 (End-User)", "Query 3 (End-User)", "Query 4 (End-User)"), index=0)
 
     if query_choice == "Query 1 (DA)":
         # Ajoutez ici la logique pour la Query 1 pour l'utilisateur interne
@@ -483,19 +491,19 @@ def data_stat_admin():
     
 
 # Fonction pour la page utilisateur interne
-def page_internal_user():
+def page_data_analyst():
     st.title("Data Analyst User")
 
-    onglet_selectionne = st.sidebar.selectbox("Navigation", ("Queries", "Performance Measurement"))
+    onglet_selectionne = st.sidebar.selectbox("Navigation", ("Queries", "Performance Measurement"), index=0)
 
     if onglet_selectionne == "Performance Measurement":
         page_performance_measurement()
 
     elif onglet_selectionne == "Queries":
-        internal_queries()
+        da_queries()
 
 # Fonction pour la page utilisateur End-User
-def page_external_user():
+def page_end_user():
     st.title("End-User")
 
     # onglet_selectionne = st.sidebar.selectbox("Navigation", "Queries")
@@ -506,23 +514,26 @@ def page_external_user():
 
     # if onglet_selectionne == "Queries":
     #     external_queries()
-    external_queries()
+    eu_queries()
 
 # Fonction pour la page Administrateur
 def page_admin():
     st.title("Administrator")
-    onglet_selectionne = st.sidebar.selectbox("Navigation", ("Data Distribution Statistics", "Cluster State", "Data Repartition", "Indexes"))
+    onglet_selectionne = st.sidebar.selectbox("Navigation", ("Data Distribution Statistics", "Cluster State", "Data Repartition", "Indexes"), index=0)
 
     if onglet_selectionne == "Data Distribution Statistics":
         data_stat_admin()
-# Interface utilisateur Streamlit
+
+
+# User Interface  Streamlit
 st.title("Walmart Weather 🌧")  
 # st.set_page_config(page_title="Walmart Weather 🌧", layout="wide", bg_color="lightblue")
-user_level = st.selectbox("Select your user level ", ("Data Analyst", "End-User", "Administrator"))
+user_level = st.selectbox("Select your user level ", ("End-User", "Data Analyst", "Administrator"), index=0)
 
-if user_level == "Data Analyst":
-    page_internal_user()
-elif user_level == "End-User":
-    page_external_user()
-elif user_level == "Administrator":
-    page_admin()
+if st.button("Show Content"):
+    if user_level == "Data Analyst":
+        page_data_analyst()
+    elif user_level == "End-User":
+        page_end_user()
+    elif user_level == "Administrator":
+        page_admin()
