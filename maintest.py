@@ -24,8 +24,80 @@ def internal_queries():
         # Ajoutez ici la logique pour la Query 1 pour l'utilisateur interne
         st.write("You choose Query 1 (DA)")
     elif query_choice == "Query 2 (DA)":
-        # Ajoutez ici la logique pour la Query 2 pour l'utilisateur interne
+        # Ajoutez ici la logique pour la Query 3 pour l'utilisateur End-User
         st.write("You choose Query 2 (DA)")
+        collection_name = 'stores'
+        collection = db[collection_name] 
+        # Parameter Streamlit to choose the value of store_nbr
+        unique_store_nbr_values = collection.distinct('store_nbr')
+        selected_store_nbr = st.selectbox("Choose the store_nbr", unique_store_nbr_values, index=0)
+        if st.button("Run Query 2 (DA)"):   
+            pipeline = [
+                {
+                    '$match': {
+                        'store_nbr': selected_store_nbr
+                    }
+                }, {
+                    '$lookup': {
+                        'from': 'weather', 
+                        'localField': 'station_nbr', 
+                        'foreignField': 'station_nbr', 
+                        'as': 'weather_info'
+                    }
+                }, {
+                    '$unwind': '$weather_info'
+                }, {
+                    '$match': {
+                        'weather_info.snowfall': {
+                            '$gt': 2
+                        }
+                    }
+                }, {
+                    '$lookup': {
+                        'from': 'sales', 
+                        'let': {
+                            'store_nbr': '$store_nbr', 
+                            'weather_date': '$weather_info.date'
+                        }, 
+                        'pipeline': [
+                            {
+                                '$match': {
+                                    '$expr': {
+                                        '$and': [
+                                            {
+                                                '$eq': [
+                                                    '$store_nbr', '$$store_nbr'
+                                                ]
+                                            }, {
+                                                '$eq': [
+                                                    '$date', '$$weather_date'
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        ], 
+                        'as': 'sales_info'
+                    }
+                }, {
+                    '$unwind': '$sales_info'
+                }, {
+                    '$group': {
+                        '_id': '$store_nbr', 
+                        'total_units_sold': {
+                        '$sum': '$sales_info.units'
+                        }
+                    }
+                },{
+                                '$sort': {'total_units': -1} 
+                            }
+            ]
+            result = list(collection.aggregate(pipeline))
+            df_da2 = pd.DataFrame(result)
+            st.write("This query returns the number of items sold out of all the items from the store 1 during snow days.")
+            st.write(df_da2)
+
     elif query_choice == "Query 1 (End-User)":
         # Ajoutez ici la logique pour la Query 1 pour l'utilisateur End-User
         st.write("You choose Query 1 (End-User)")
@@ -71,12 +143,12 @@ def internal_queries():
                     '$match': {
                         'store_nbr': {
                             '$in': [
-                                1,2,3
+                                1
                             ]
                         }, 
                         'date': {
-                            '$gte': dt.datetime(2012, 12, 1, 0, 0, 0, tzinfo=dt.timezone.utc), 
-                            '$lte': dt.datetime(2012, 12, 31, 0, 0, 0, tzinfo=dt.timezone.utc)
+                            '$gte': dt.datetime(2012, 1, 1, 0, 0, 0, tzinfo=dt.timezone.utc), 
+                            '$lte': dt.datetime(2012, 1, 31, 0, 0, 0, tzinfo=dt.timezone.utc)
                         }
                     }
                 }, {
@@ -91,15 +163,19 @@ def internal_queries():
                     }
                 }, {
                     '$project': {
-                        'store_nbr': '$_id.store_nbr', 
+                        'store_nbr': 1, 
                         'item_nbr': '$_id.item_nbr', 
                         'total_units': 1, 
                         '_id': 0
                     }
-                }
+                }, {
+                    '$sort': {'item_nbr': 1} 
+                   }
             ]
             result = list(collection.aggregate(pipeline))
-            st.write(result)
+            df_eu3 = pd.DataFrame(result)
+            st.write("This query returns the number of sales of all items from the store 1 in the month of February.")
+            st.write(df_eu3[['item_nbr', 'total_units']])
 
     elif query_choice == "Query 4 (End-User)":
         # Ajoutez ici la logique pour la Query 4 pour l'utilisateur End-User
@@ -112,12 +188,12 @@ def internal_queries():
                     '$match': {
                         'item_nbr': {
                             '$in': [
-                                105
+                                5
                             ]
                         }, 
                         'date': {
-                            '$gte': dt.datetime(2012, 12, 1, 0, 0, 0, tzinfo=dt.timezone.utc), 
-                            '$lte': dt.datetime(2012, 12, 31, 0, 0, 0, tzinfo=dt.timezone.utc)
+                            '$gte': dt.datetime(2012, 2, 1, 0, 0, 0, tzinfo=dt.timezone.utc), 
+                            '$lte': dt.datetime(2012, 2, 31, 0, 0, 0, tzinfo=dt.timezone.utc)
                         }
                     }
                 }, {
@@ -133,14 +209,20 @@ def internal_queries():
                 }, {
                     '$project': {
                         'store_nbr': '$_id.store_nbr', 
-                        'item_nbr': '$_id.item_nbr', 
+                        'item_nbr': 1, 
                         'total_units': 1, 
                         '_id': 0
                     }
-                }
+                }, {
+                    '$sort': {'store_nbr': 1} 
+                   }
             ]
+
             result = list(collection.aggregate(pipeline))
-            st.write(result)
+            df_eu4 = pd.DataFrame(result)
+            st.write("This query returns the number of sales of item_nbr 5 across all stores in the month of January.")
+            st.write(df_eu4[['store_nbr', 'total_units']])
+
         
 
 # Fonction pour les Querys spécifiques pour l'utilisateur End-User
