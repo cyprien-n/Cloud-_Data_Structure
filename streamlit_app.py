@@ -183,7 +183,7 @@ DA2 = [
             ]
 
 
-###########################################     Function for the actions limited to data analysts     #########################################################
+###########################################     Function for the actions and views limited to data analysts     #########################################################
 
 def da_queries():
     st.subheader("Data Analyst Queries")
@@ -336,7 +336,7 @@ def da_queries():
         
 
 
-###########################################     Function for the actions limited to end-users      #########################################################
+###########################################     Function for the actions and views limited to end-users      #########################################################
 
 def eu_queries():
     st.subheader("End-User queries")
@@ -383,7 +383,7 @@ def eu_queries():
             st.write(df_eu4[['store_nbr', 'total_units']])
 
 
-# Fonction pour la page de mesure de performance
+###########################################     Function for performance measurements      #########################################################
 def page_performance_measurement():
     st.subheader("Performance Measurement")
     # Ajoutez ici la logique pour la Peformance Measurement pour l'utilisateur interne
@@ -507,7 +507,8 @@ def page_performance_measurement():
         # plt.title('Mean execution time depending of the number of Shards')
         # st.pyplot(plt)
 
-# Fonction pour la page data statistiques administrateur
+###########################################     Function for actions and views limited to administrators      #########################################################
+
 def data_stat_admin():
     call= db.command("dbstats")
     datasize = call['dataSize'] / 1024
