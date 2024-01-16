@@ -282,7 +282,7 @@ def eu_queries():
             end_time = time.time()
             execution_time = end_time - start_time
             df_eu2 = pd.DataFrame(result)
-            st.write("")
+            st.write("This query returns the last weather report of a given store.")
             st.write(df_eu2)
             st.write(f"Execution time : {execution_time} seconds")
 
